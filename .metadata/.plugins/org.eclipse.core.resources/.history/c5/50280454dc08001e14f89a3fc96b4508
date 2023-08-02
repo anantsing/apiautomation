@@ -1,0 +1,135 @@
+package test;
+import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+
+//import java.lang.reflect.Type;
+
+//import javax.json.bind.Jsonb;
+
+//import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+//import groovy.json.JsonOutput;
+import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
+//import io.restassured.path.json.mapper.factory.JsonbObjectMapperFactory;
+//import io.restassured.response.Response;
+import payload.RequestPayload;
+
+public class AddPlace {
+	static String placeId;
+	
+	@BeforeMethod
+	public void setup() {
+	 RestAssured.baseURI="https://rahulshettyacademy.com";
+		
+	}
+	
+	@Test(priority=0,invocationCount=1,description= "put data on server" ,groups="smoke",dataProvider = "username")
+	public void createGooglePlace(String name,String address){
+		
+		
+		String response	=	given().log().all().queryParam("Key","qaclick123").header("Content-Type","application/json").
+				body(RequestPayload.placePayLoad(name,address)).
+				when().post("maps/api/place/add/json").
+				then().log().all().assertThat().statusCode(200)
+				             .header("Server","Apache/2.4.41 (Ubuntu)").
+				             body("status",equalTo("OK")).extract().response().asString();//all resonse comes instring form
+	     
+		
+		      JsonPath js = new JsonPath(response);
+		       placeId  = js.getString("place_id");
+		      
+		      System.out.println(placeId);
+				
+	}
+	@Test(priority=2)
+	public  void getGooglePlace() {
+		
+		String expectedaddress =  "Delhi up";
+		String res =  given().log().all().queryParam("Key","qaclick123").queryParam("place_id",placeId).
+				header("Content-Type","application/json").		
+		when().get("maps/api/place/get/json")
+		.then().log().all().assertThat().statusCode(200).extract().response().asString();
+		
+		JsonPath js1= new JsonPath(res);
+	    String add= js1.getString("address");
+	   System.out.println(add);
+	   assertEquals(expectedaddress, add);
+       
+		
+		
+		
+	}
+	@Test(priority=1)
+	public void updatAddress() {
+		 RestAssured.baseURI="https://rahulshettyacademy.com";
+		String response	=	given().log().all().queryParam("Key","qaclick123").header("Content-Type","application/json").
+				body("{\r\n"
+						+ "\"place_id\":\""+placeId+"\",\r\n"
+						+ "\"address\":\"Delhi up\",\r\n"
+						+ "\"key\":\"qaclick123\"\r\n"
+						+ "}").
+			when().put("maps/api/place/update/json").
+				then().log().all().assertThat().statusCode(200)
+				            .header("Server","Apache/2.4.41 (Ubuntu)").
+			        extract().response().asString();//all resonse comes instring form
+		     
+}
+	@DataProvider(name ="userdata")
+	public Object[][] getdata(){
+		
+		return new Object[][] {("Manish","pune"),("karnee" , "grugram"),("tulsi" , "ghar ki")};
+	
+}
+	
+	
+}	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
